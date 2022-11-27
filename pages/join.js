@@ -2,28 +2,38 @@ import { Button } from "web3uikit"
 import { useState, useEffect } from "react"
 import { useMoralis, useWeb3Contract } from "react-moralis"
 import { ethers } from "ethers"
+import { Lottery__factory, LotteryToken__factory } from "../constants/typechain-types"
+
+const ADDRESS = "0xA1ddA1EC29F957Ef79Bb8C2ce0dCA715dd42572e"
 
 export default function Join() {
     let [accountAddress, setAccountAddress] = useState("0x")
     let [tokenBalance, setTokenBalance] = useState("0")
     let [ethBlance, setEthBalance] = useState("0")
-    let [start, setStart] = useState(0)
-    let [bets, setBets] = useState(0)
+    let [winnings, setWinnings] = useState(0)
 
     const { isWeb3Enabled, chainId, account, Moralis } = useMoralis()
 
-    async function getEthBlance() {
+    async function updatingUI() {
         const web3Provider = await Moralis.enableWeb3()
         const balanceBN = await web3Provider.getBalance(account)
         const balance = ethers.utils.formatEther(balanceBN)
-        return balance
-    }
+        setEthBalance(balance)
 
-    if (start == 0) {
-        setStart(1)
-        setEthBalance(0)
-        setTokenBalance(0)
-        setBets(0)
+        const provider = ethers.getDefaultProvider("goerli", {
+            alchemy: "nyuWA6Qddm3CRM2uuXANH1ZYq5n6AXwm",
+        })
+        const deployer = ethers.Wallet.createRandom().connect(provider)
+
+        const lotteryContractFactory = new Lottery__factory(deployer)
+        const lottery = lotteryContractFactory.attach(ADDRESS)
+        const tokenAddress = await lottery.paymentToken()
+        const lotteryTokenContractFactory = new LotteryToken__factory()
+        const token = lotteryTokenContractFactory.attach(tokenAddress).connect(provider)
+
+        const tokenBalanceBN = await token.balanceOf(account)
+        const tokenBalance = ethers.utils.formatEther(tokenBalanceBN)
+        setTokenBalance(tokenBalance)
     }
 
     const { runContractFunction } = useWeb3Contract()
@@ -32,13 +42,12 @@ export default function Join() {
         setAccountAddress(account)
         setEthBalance(0)
         setTokenBalance(0)
-        setBets(0)
+        setWinnings(0)
     }
 
     useEffect(() => {
         if (isWeb3Enabled) {
             setupUI()
-            start = 0
         }
     }, [account, isWeb3Enabled, chainId])
 
@@ -48,15 +57,15 @@ export default function Join() {
             <h1 className="py-4 px-4 font-bold text-2xl text-center">
                 Your LTT holdings: {tokenBalance}
             </h1>
-            <h1 className="py-4 px-4 font-bold text-2xl text-center">Bets entered: {bets}</h1>
+            <h1 className="py-4 px-4 font-bold text-2xl text-center">
+                Withdrawable winnings: {winnings} LTT
+            </h1>
             <div className=" grid grid-cols-1">
                 <div className="place-self-center">
                     <Button
                         id="buyTokens"
                         onClick={async function buyTokens() {
                             console.log("Hello there, mate! Buying tokens I see...")
-                            console.log(`Account: ${account}`)
-                            const balance = await getEthBlance()
                         }}
                         text="Buy Tokens!"
                         theme="colored"
@@ -70,7 +79,7 @@ export default function Join() {
                         onClick={async function burnTokens() {
                             console.log("Hello there, mate! Burning tokens I see...")
                         }}
-                        text="Burn Tokens!"
+                        text="Redeem LTT!"
                         theme="colored"
                         color="blue"
                         size="large"
@@ -92,8 +101,7 @@ export default function Join() {
                     <Button
                         id="update"
                         onClick={async function updateUI() {
-                            const balance = await getEthBlance()
-                            setEthBalance(balance)
+                            await updatingUI()
                         }}
                         text="Refresh account!"
                         theme="colored"
