@@ -43,7 +43,9 @@ export default function Home() {
         const closingTimestamp = await lottery.closingTimestamp()
         const closingString = `${new Date(
             closingTimestamp.toNumber() * 1000
-        ).toLocaleTimeString()} ET`
+        ).toLocaleTimeString()} ET on ${new Date(
+            closingTimestamp.toNumber() * 1000
+        ).toLocaleDateString()}`
         setFinish(closingString)
     }
 

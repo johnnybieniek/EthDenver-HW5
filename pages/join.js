@@ -1,10 +1,15 @@
 import { Button } from "web3uikit"
 import { useState, useEffect } from "react"
-import { useMoralis, useWeb3Contract } from "react-moralis"
+import { useMoralis } from "react-moralis"
 import { ethers } from "ethers"
 import { Lottery__factory, LotteryToken__factory } from "../constants/typechain-types"
+import LotteryAddress from "../constants/LotteryAddress.json"
+import Lottery from "../constants/Lottery.json"
+import LotteryToken from "../constants/LotteryToken.json"
+import LotteryTokenAddress from "../constants/LotteryTokenAddress.json"
 
 const ADDRESS = "0xA1ddA1EC29F957Ef79Bb8C2ce0dCA715dd42572e"
+const BUY_AMOUNT = ethers.utils.parseEther("0.01")
 
 export default function Join() {
     let [accountAddress, setAccountAddress] = useState("0x")
@@ -34,9 +39,11 @@ export default function Join() {
         const tokenBalanceBN = await token.balanceOf(account)
         const tokenBalance = ethers.utils.formatEther(tokenBalanceBN)
         setTokenBalance(tokenBalance)
-    }
 
-    const { runContractFunction } = useWeb3Contract()
+        const prizeWinningsBN = await lottery.prize(account)
+        const prizeWinnings = ethers.utils.formatEther(prizeWinningsBN)
+        setWinnings(prizeWinnings)
+    }
 
     async function setupUI() {
         setAccountAddress(account)
@@ -66,8 +73,17 @@ export default function Join() {
                         id="buyTokens"
                         onClick={async function buyTokens() {
                             console.log("Hello there, mate! Buying tokens I see...")
+                            const web3Provider = await Moralis.enableWeb3()
+                            const signer = web3Provider.getSigner()
+                            const contract = new ethers.Contract(LotteryAddress, Lottery, signer)
+
+                            const tx = await contract.purchaseTokens({
+                                value: BUY_AMOUNT,
+                            })
+                            await tx.wait()
+                            console.log("Tokens purchased!")
                         }}
-                        text="Buy Tokens!"
+                        text="Buy 10 Tokens!"
                         theme="colored"
                         color="blue"
                         size="large"
@@ -75,7 +91,7 @@ export default function Join() {
                 </div>
                 <div className="place-self-center">
                     <Button
-                        id="burnTokens"
+                        id="redeemTokens"
                         onClick={async function burnTokens() {
                             console.log("Hello there, mate! Burning tokens I see...")
                         }}
@@ -90,6 +106,25 @@ export default function Join() {
                         id="joinLottery"
                         onClick={async function joinLottery() {
                             console.log("Hello there, mate! Joining the lottery, I see...")
+                            const web3Provider = await Moralis.enableWeb3()
+                            const gasPrice = await web3Provider.getGasPrice()
+                            const signer = web3Provider.getSigner()
+                            const contract = new ethers.Contract(LotteryAddress, Lottery, signer)
+                            const token = new ethers.Contract(
+                                LotteryTokenAddress,
+                                LotteryToken,
+                                signer
+                            )
+
+                            const allowTx = await token.approve(
+                                contract.address,
+                                ethers.constants.MaxUint256
+                            )
+                            await allowTx.wait()
+
+                            const tx = await contract.bet({ gasLimit: 400000, gasPrice: gasPrice })
+                            await tx.wait()
+                            console.log("User added to the lottery pool!")
                         }}
                         text="Join Lottery!"
                         theme="colored"
