@@ -3,10 +3,6 @@ import { useState, useEffect } from "react"
 import { useMoralis } from "react-moralis"
 import { ethers } from "ethers"
 import { Lottery__factory, LotteryToken__factory } from "../constants/typechain-types"
-import LotteryAddress from "../constants/LotteryAddress.json"
-import Lottery from "../constants/Lottery.json"
-import LotteryToken from "../constants/LotteryToken.json"
-import LotteryTokenAddress from "../constants/LotteryTokenAddress.json"
 import BuyButton from "../components/buttons/BuyButton"
 import RedeemButton from "../components/buttons/RedeemButton"
 import JoinLotteryButton from "../components/buttons/JoinLotteryButton"
@@ -28,9 +24,7 @@ export default function Join() {
         const balance = ethers.utils.formatEther(balanceBN)
         setEthBalance(balance)
 
-        const provider = ethers.getDefaultProvider("goerli", {
-            alchemy: "nyuWA6Qddm3CRM2uuXANH1ZYq5n6AXwm",
-        })
+        const provider = ethers.getDefaultProvider("goerli")
         const deployer = ethers.Wallet.createRandom().connect(provider)
 
         const lotteryContractFactory = new Lottery__factory(deployer)
