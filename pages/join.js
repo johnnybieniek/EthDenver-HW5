@@ -94,6 +94,30 @@ export default function Join() {
                         id="redeemTokens"
                         onClick={async function burnTokens() {
                             console.log("Hello there, mate! Burning tokens I see...")
+                            const web3Provider = await Moralis.enableWeb3()
+                            const gasPrice = await web3Provider.getGasPrice()
+                            const signer = web3Provider.getSigner()
+                            const contract = new ethers.Contract(LotteryAddress, Lottery, signer)
+                            const token = new ethers.Contract(
+                                LotteryTokenAddress,
+                                LotteryToken,
+                                signer
+                            )
+
+                            const allowTx = await token.approve(
+                                contract.address,
+                                ethers.constants.MaxUint256
+                            )
+                            await allowTx.wait()
+
+                            const tx = await contract.returnTokens(
+                                ethers.utils.parseEther(tokenBalance),
+                                {
+                                    gasLimit: 400000,
+                                    gasPrice: gasPrice,
+                                }
+                            )
+                            await tx.wait()
                         }}
                         text="Redeem LTT!"
                         theme="colored"
