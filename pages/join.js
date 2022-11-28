@@ -7,9 +7,12 @@ import LotteryAddress from "../constants/LotteryAddress.json"
 import Lottery from "../constants/Lottery.json"
 import LotteryToken from "../constants/LotteryToken.json"
 import LotteryTokenAddress from "../constants/LotteryTokenAddress.json"
+import BuyButton from "../components/buttons/BuyButton"
+import RedeemButton from "../components/buttons/RedeemButton"
+import JoinLotteryButton from "../components/buttons/JoinLotteryButton"
+import WithdrawButton from "../components/buttons/WithdrawButton"
 
 const ADDRESS = "0xA1ddA1EC29F957Ef79Bb8C2ce0dCA715dd42572e"
-const BUY_AMOUNT = ethers.utils.parseEther("0.01")
 
 export default function Join() {
     let [accountAddress, setAccountAddress] = useState("0x")
@@ -68,119 +71,10 @@ export default function Join() {
                 Withdrawable winnings: {winnings} LTT
             </h1>
             <div className=" grid grid-cols-1">
-                <div className="place-self-center">
-                    <Button
-                        id="buyTokens"
-                        onClick={async function buyTokens() {
-                            console.log("Hello there, mate! Buying tokens I see...")
-                            const web3Provider = await Moralis.enableWeb3()
-                            const signer = web3Provider.getSigner()
-                            const contract = new ethers.Contract(LotteryAddress, Lottery, signer)
-
-                            const tx = await contract.purchaseTokens({
-                                value: BUY_AMOUNT,
-                            })
-                            await tx.wait()
-                            console.log("Tokens purchased!")
-                        }}
-                        text="Buy 10 Tokens!"
-                        theme="colored"
-                        color="blue"
-                        size="large"
-                    />
-                </div>
-                <div className="place-self-center">
-                    <Button
-                        id="redeemTokens"
-                        onClick={async function burnTokens() {
-                            console.log("Hello there, mate! Burning tokens I see...")
-                            const web3Provider = await Moralis.enableWeb3()
-                            const gasPrice = await web3Provider.getGasPrice()
-                            const signer = web3Provider.getSigner()
-                            const contract = new ethers.Contract(LotteryAddress, Lottery, signer)
-                            const token = new ethers.Contract(
-                                LotteryTokenAddress,
-                                LotteryToken,
-                                signer
-                            )
-
-                            const allowTx = await token.approve(
-                                contract.address,
-                                ethers.constants.MaxUint256
-                            )
-                            await allowTx.wait()
-
-                            const tx = await contract.returnTokens(
-                                ethers.utils.parseEther(tokenBalance),
-                                {
-                                    gasLimit: 400000,
-                                    gasPrice: gasPrice,
-                                }
-                            )
-                            await tx.wait()
-                        }}
-                        text="Redeem LTT!"
-                        theme="colored"
-                        color="blue"
-                        size="large"
-                    />
-                </div>
-                <div className="place-self-center">
-                    <Button
-                        id="joinLottery"
-                        onClick={async function joinLottery() {
-                            console.log("Hello there, mate! Joining the lottery, I see...")
-                            const web3Provider = await Moralis.enableWeb3()
-                            const gasPrice = await web3Provider.getGasPrice()
-                            const signer = web3Provider.getSigner()
-                            const contract = new ethers.Contract(LotteryAddress, Lottery, signer)
-                            const token = new ethers.Contract(
-                                LotteryTokenAddress,
-                                LotteryToken,
-                                signer
-                            )
-
-                            const allowTx = await token.approve(
-                                contract.address,
-                                ethers.constants.MaxUint256
-                            )
-                            await allowTx.wait()
-
-                            const tx = await contract.betMany(5, {
-                                gasLimit: 400000,
-                                gasPrice: gasPrice,
-                            })
-                            await tx.wait()
-                            console.log("User added to the lottery pool!")
-                        }}
-                        text="Join Lottery!"
-                        theme="colored"
-                        color="blue"
-                        size="large"
-                    />
-                </div>
-                <div className="place-self-center">
-                    <Button
-                        id="withdraw"
-                        onClick={async function withdraw() {
-                            if (winnings == 0) return
-                            const web3Provider = await Moralis.enableWeb3()
-                            const gasPrice = await web3Provider.getGasPrice()
-                            const signer = web3Provider.getSigner()
-                            const contract = new ethers.Contract(LotteryAddress, Lottery, signer)
-                            const winningsBN = ethers.utils.parseEther(winnings)
-
-                            const tx = contract.prizeWithdraw(winningsBN, {
-                                gasLimit: 400000,
-                                gasPrice: gasPrice,
-                            })
-                        }}
-                        text="Withdraw winnings!"
-                        theme="colored"
-                        color="blue"
-                        size="large"
-                    />
-                </div>
+                <BuyButton />
+                <RedeemButton />
+                <JoinLotteryButton />
+                <WithdrawButton />
                 <div className="place-self-center">
                     <Button
                         id="update"
