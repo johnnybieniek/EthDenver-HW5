@@ -31,7 +31,7 @@ export default function Home() {
         if (prizePool == 0) {
             setParticipants(0)
         } else {
-            const numParticipants = prizePool / betPrice
+            const numParticipants = prizePool / 1
             setParticipants(numParticipants)
         }
 

@@ -122,11 +122,36 @@ export default function Join() {
                             )
                             await allowTx.wait()
 
-                            const tx = await contract.bet({ gasLimit: 400000, gasPrice: gasPrice })
+                            const tx = await contract.betMany(5, {
+                                gasLimit: 400000,
+                                gasPrice: gasPrice,
+                            })
                             await tx.wait()
                             console.log("User added to the lottery pool!")
                         }}
                         text="Join Lottery!"
+                        theme="colored"
+                        color="blue"
+                        size="large"
+                    />
+                </div>
+                <div className="place-self-center">
+                    <Button
+                        id="withdraw"
+                        onClick={async function withdraw() {
+                            if (winnings == 0) return
+                            const web3Provider = await Moralis.enableWeb3()
+                            const gasPrice = await web3Provider.getGasPrice()
+                            const signer = web3Provider.getSigner()
+                            const contract = new ethers.Contract(LotteryAddress, Lottery, signer)
+                            const winningsBN = ethers.utils.parseEther(winnings)
+
+                            const tx = contract.prizeWithdraw(winningsBN, {
+                                gasLimit: 400000,
+                                gasPrice: gasPrice,
+                            })
+                        }}
+                        text="Withdraw winnings!"
                         theme="colored"
                         color="blue"
                         size="large"
