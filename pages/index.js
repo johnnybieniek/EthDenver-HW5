@@ -7,7 +7,8 @@ import { Lottery__factory } from "../constants/typechain-types"
 const ADDRESS = "0xA1ddA1EC29F957Ef79Bb8C2ce0dCA715dd42572e"
 
 export default function Home() {
-    const { isWeb3Enabled, chainId, account } = useMoralis()
+    const { isWeb3Enabled, account } = useMoralis()
+    let [lotteryActive, setLotteryActive] = useState(false)
     let [prizePool, setPrizePool] = useState(0)
     let [participants, setParticipants] = useState(0)
     let [ticket, setTicket] = useState(0)
@@ -38,9 +39,11 @@ export default function Home() {
         const betsOpen = await lottery.betsOpen()
         if (!betsOpen) {
             setFinish("The lottery is currently closed")
+            setLotteryActive(false)
             return
         }
         const closingTimestamp = await lottery.closingTimestamp()
+        setLotteryActive(true)
         const closingString = `${new Date(
             closingTimestamp.toNumber() * 1000
         ).toLocaleTimeString()} ET on ${new Date(
@@ -51,18 +54,29 @@ export default function Home() {
 
     return (
         <div className="container mx-auto">
-            <h1 className="py-4 px-4 font-bold text-2xl text-center">
-                Current Prize Pool: {prizePool} LTT
-            </h1>
-            <h1 className="py-4 px-4 font-bold text-2xl text-center">
-                Number of participants: {participants}
-            </h1>
-            <h1 className="py-4 px-4 font-bold text-2xl text-center">
-                The ticket cost: {ticket} LTT
-            </h1>
-            <h1 className="py-4 px-4 font-bold text-2xl text-center">
-                The lottery ends at: {finish}
-            </h1>
+            {lotteryActive ? (
+                <div>
+                    <h1 className="py-4 px-4 font-bold text-2xl text-center">
+                        Current Prize Pool: {prizePool} LTT
+                    </h1>
+                    <h1 className="py-4 px-4 font-bold text-2xl text-center">
+                        Number of participants: {participants}
+                    </h1>
+                    <h1 className="py-4 px-4 font-bold text-2xl text-center">
+                        The ticket cost: {ticket} LTT
+                    </h1>
+                    <h1 className="py-4 px-4 font-bold text-2xl text-center">
+                        The lottery ends at: {finish}
+                    </h1>
+                </div>
+            ) : (
+                <div>
+                    <h1 className="py-4 px-4 font-bold text-2xl text-center">
+                        The lottery is currently closed!
+                    </h1>
+                </div>
+            )}
+
             <div>
                 {isWeb3Enabled ? (
                     <div>
